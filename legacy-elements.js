@@ -3308,8 +3308,16 @@ const SHOW_LABELS = false;
 const SHOW_ELEMENTS = true;
 const SHOW_CLOUDS = true;
 const SHOW_CLOUD_LABELS = false;
-const ELEMENT_ALPHA = 1.22;
-const NON_HF_ELEMENT_ALPHA = 1.12;
+const ELEMENT_ALPHA = 1.42;
+const NON_HF_ELEMENT_ALPHA = 2.05;
+
+function elementVisibilityBoost(label) {
+  return label === 'Nuclei-Gruppe' ? 1 : NON_HF_ELEMENT_ALPHA;
+}
+
+function elementVisibilityFilter(label) {
+  return elementVisibilityBoost(label) === 1 ? 'none' : 'contrast(1.18) brightness(1.08)';
+}
 
 function compareSlot(index, variant='orig') {
   if (variant === true) variant = 'slime';
@@ -3512,11 +3520,11 @@ function drawHFStyleCloudFleck(cloud, sizeMul = 1, softnessMul = 1, alphaMul = 1
   const w = cloud.size * 0.78 * sizeMul;
   const h = cloud.size * 0.58 * sizeMul;
   const cloudSoftness = 1.28;
-  const cloudAlpha = 0.42;
+  const cloudAlpha = 0.68;
   drawingContext.save();
   if (floaterFleckCloud) {
     imageMode(CENTER);
-    drawingContext.filter = `brightness(0.66) contrast(1.08) blur(${FLECK_SUPER_BLUR_PX * 5.4 * softnessMul * cloudSoftness}px)`;
+    drawingContext.filter = `brightness(0.56) contrast(1.18) blur(${FLECK_SUPER_BLUR_PX * 5.4 * softnessMul * cloudSoftness}px)`;
     tint(255, Math.min(255, Math.round((255 * alphaMul * cloudAlpha) / Math.max(1, softnessMul * 0.78))));
     image(floaterFleckCloud.pg, x, y, w, h);
     noTint();
@@ -6829,7 +6837,7 @@ function draw() {
   // Kern weich angeglichen an Corona: größer, diffuser, geringerer Alpha
   // → keine harte Trennung mehr zwischen heller Corona und dunklem Kern
   {
-    drawHFStyleCloudFleck(biggerCloud, 1.1, 1, 1.64);
+    drawHFStyleCloudFleck(biggerCloud, 1.1, 1, 2.95);
     drawCloudLabel('F1', biggerCloud);
     if (upperLeftGreyCloud) {
       const f2Follow = createVector(
@@ -6845,7 +6853,7 @@ function draw() {
         1.55
       );
     }
-    drawHFStyleCloudFleck(upperLeftGreyCloud, 1.0, 2.10, 1.58);
+    drawHFStyleCloudFleck(upperLeftGreyCloud, 1.0, 2.10, 2.82);
     drawCloudLabel('F2', upperLeftGreyCloud);
     if (SHOW_CLOUDS) {
       f2CenterCopies.forEach((c, i) => {
@@ -6854,7 +6862,7 @@ function draw() {
           mouseDirNS.y * 0.72 + cos(frameCount * 0.012 + i) * 0.06
         );
         c.update(mouseMoving, [0.39, 0.61], [0.42, 0.62], SMALLER_SPEED_SCALE * 1.08, follow, 1.28);
-        drawHFStyleCloudFleck(c, 1.0, 2.10, 1.58);
+        drawHFStyleCloudFleck(c, 1.0, 2.10, 2.82);
       });
     }
   }
@@ -6966,7 +6974,7 @@ function draw() {
     smallerFollow,
     2.05
   );
-  drawHFStyleCloudFleck(smallerCloud, 1.0, 2.10, 1.58);
+  drawHFStyleCloudFleck(smallerCloud, 1.0, 2.10, 2.82);
   drawCloudLabel('F3', smallerCloud);
   // Weisser Superfleck temporÃ¤r ausgeblendet.
   /* Markierungsring + Beschriftung entfernt */
@@ -6977,7 +6985,7 @@ function draw() {
     const rsemForm23 = flowedPoint(p5.Vector.add(createVector(width * 0.58 + semR * 2.2, height * 0.58), cmpMotion), 'sem-form23-next', 16);
     drawingContext.save();
     drawingContext.globalAlpha = 0.72 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
-    drawingContext.filter = 'none';
+    drawingContext.filter = 'contrast(1.18) brightness(1.08)';
     drawHFStyleBlobReplica('', rh.x, rh.y, NUCLEUS_DROP_BASE_SIZE * 0.74 * 0.8, 1);
     drawingContext.restore();
     drawingContext.save();
@@ -6990,7 +6998,8 @@ function draw() {
 
   drawingContext.save();
   const centerRound = flowedPoint(p5.Vector.add(createVector(width * 0.5, height * 0.5), cmpMotion), 'rundtest-center', 13);
-  drawingContext.globalAlpha = 0.92 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+  drawingContext.globalAlpha = 0.96 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+  drawingContext.filter = 'contrast(1.18) brightness(1.08)';
   drawStaticRoundTestReplica('', centerRound.x, centerRound.y, NUCLEUS_DROP_BASE_SIZE * 0.54);
   drawingContext.restore();
 
@@ -7001,7 +7010,8 @@ function draw() {
   ].forEach(rt => {
     const p = flowedPoint(p5.Vector.add(createVector(width * rt.x, height * rt.y), cmpMotion), rt.key, rt.amp);
     drawingContext.save();
-    drawingContext.globalAlpha = 0.90 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+    drawingContext.globalAlpha = 0.94 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+    drawingContext.filter = 'contrast(1.18) brightness(1.08)';
     drawStaticRoundTestReplica('', p.x, p.y, NUCLEUS_DROP_BASE_SIZE * rt.r);
     drawingContext.restore();
   });
@@ -7039,14 +7049,16 @@ function draw() {
   nucleusDrops.forEach(d => {
     const a = (typeof d._alphaMul === 'number') ? d._alphaMul : 1;
     let s = (typeof d._compareCopy === 'number') ? 0.9 : 1;
-    const compareLabel = d._compareLabel || d._label;
+    const compareLabel = d._compareLabel || d._label || (d.semiTiedTo && d.semiTiedTo._label);
+    const visibilityBoost = elementVisibilityBoost(compareLabel);
     if (typeof d._compareCopy === 'number' && !compareVariantVisible(compareLabel, 'orig')) return;
     if (compareLabel === 'Nucleus 1') s *= 0.85;
     const faded = compareLabel === 'Nucleus 1' || compareLabel === 'Nucleus 2';
     if (a !== 1 || s !== 1) {
       drawingContext.save();
       if (faded) drawingContext.globalAlpha *= 0.72;
-      drawingContext.globalAlpha *= a * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+      drawingContext.globalAlpha *= a * ELEMENT_ALPHA * visibilityBoost;
+      drawingContext.filter = elementVisibilityFilter(compareLabel);
       if (s !== 1) {
         translate(d.pos.x, d.pos.y);
         scale(s);
@@ -7057,14 +7069,16 @@ function draw() {
     } else {
       drawingContext.save();
       if (faded) drawingContext.globalAlpha *= 0.72;
-      drawingContext.globalAlpha *= ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+      drawingContext.globalAlpha *= ELEMENT_ALPHA * visibilityBoost;
+      drawingContext.filter = elementVisibilityFilter(compareLabel);
       d.display();
       drawingContext.restore();
     }
   });
   nucleusDrops.forEach(d => {
     if (typeof d._compareCopy !== 'number') return;
-    const compareLabel = d._compareLabel || d._label;
+    const compareLabel = d._compareLabel || d._label || (d.semiTiedTo && d.semiTiedTo._label);
+    const visibilityBoost = elementVisibilityBoost(compareLabel);
     const r = (d.size || 20) * 0.62 * 0.8;
     const origSlot = comparePlacedSlot(compareLabel, 'orig', d._compareCopy, compareSlot(d._compareCopy, 'orig'));
     const ox = d.pos.x - (origSlot.x + cmpMotion.x);
@@ -7078,7 +7092,8 @@ function draw() {
     if (compareVariantVisible(compareLabel, 'hf')) {
       if (faded) drawingContext.save(), drawingContext.globalAlpha *= 0.72;
       drawingContext.save();
-      drawingContext.globalAlpha *= ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+      drawingContext.globalAlpha *= ELEMENT_ALPHA * visibilityBoost;
+      drawingContext.filter = elementVisibilityFilter(compareLabel);
       drawHFStyleBlobReplica('', hp.x + ox, hp.y + oy, variantR, d.aspect || 1);
       drawingContext.restore();
       if (faded) drawingContext.restore();
@@ -7086,15 +7101,17 @@ function draw() {
     if (compareVariantVisible(compareLabel, 'slime')) {
       if (compareLabel === 'Dreieck') {
         drawingContext.save();
-        drawingContext.globalAlpha *= 0.92 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+        drawingContext.globalAlpha *= 0.92 * ELEMENT_ALPHA * visibilityBoost;
+        drawingContext.filter = elementVisibilityFilter(compareLabel);
         drawStaticRoundTestReplica('', sp.x + ox, sp.y + oy, r * 0.88);
         drawingContext.filter = 'none';
         drawingContext.restore();
       } else if (compareLabel === 'Nuclei-Gruppe') {
         drawingContext.save();
-        drawingContext.globalAlpha *= 0.62 * ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+        drawingContext.globalAlpha *= 0.62 * ELEMENT_ALPHA * visibilityBoost;
         drawingContext.save();
-        drawingContext.globalAlpha *= ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+        drawingContext.globalAlpha *= ELEMENT_ALPHA * visibilityBoost;
+        drawingContext.filter = elementVisibilityFilter(compareLabel);
         drawSlimeStyleBlobReplica('', sp.x + ox, sp.y + oy, r, d.aspect || 1, 18 + d._compareCopy);
         drawingContext.restore();
         drawingContext.restore();
@@ -7105,7 +7122,8 @@ function draw() {
     if (compareVariantVisible(compareLabel, 'tube')) {
       if (faded) drawingContext.save(), drawingContext.globalAlpha *= 0.72;
       drawingContext.save();
-      drawingContext.globalAlpha *= ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+      drawingContext.globalAlpha *= ELEMENT_ALPHA * visibilityBoost;
+      drawingContext.filter = elementVisibilityFilter(compareLabel);
       drawTubeStyleBlobReplica('', tp.x + ox, tp.y + oy, variantR, d.aspect || 1);
       drawingContext.restore();
       if (faded) drawingContext.restore();
@@ -7152,7 +7170,7 @@ function draw() {
     const b1 = flowedPoint(p5.Vector.add(createVector(width * 0.15, height * 0.82), cmpMotion), 'b-copy-1', 13);
     const b2 = flowedPoint(p5.Vector.add(createVector(width * 0.23, height * 0.91), cmpMotion), 'b-copy-2', 13);
     drawingContext.save();
-    drawingContext.globalAlpha *= ELEMENT_ALPHA * NON_HF_ELEMENT_ALPHA;
+    drawingContext.globalAlpha *= ELEMENT_ALPHA;
     drawHFStyleBlobReplica('', b1.x, b1.y, NUCLEUS_DROP_BASE_SIZE * 0.74 * 0.8 * 0.5, 1);
     drawHFStyleBlobReplica('', b2.x, b2.y, NUCLEUS_DROP_BASE_SIZE * 0.74 * 0.8 * 0.5, 1);
     drawingContext.restore();
@@ -7194,8 +7212,8 @@ function draw() {
     floater.pos.set(hfBaseX + hfMotionX, hf1BaseY + hfMotionY);
     push();
     drawingContext.save();
-    drawingContext.globalAlpha *= ELEMENT_ALPHA * 0.88;
-    drawingContext.filter = 'contrast(1.42) brightness(1.14)';
+    drawingContext.globalAlpha *= ELEMENT_ALPHA * 1.50;
+    drawingContext.filter = 'contrast(1.56) brightness(1.18)';
     translate(floater.pos.x, floater.pos.y);
     scale(0.80, 0.93);
     translate(-floater.pos.x, -floater.pos.y);

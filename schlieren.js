@@ -16,7 +16,7 @@ let travelPhase = 0;
 let frameIndex = 0;
 let motionTotal = { x: 0, y: 0 };
 const SCHLIERE_SPRITE_REFRESH_FRAMES = 4;
-const SCHLIEREN_ALPHA_MUL = 0.84;
+const SCHLIEREN_ALPHA_MUL = 2.25;
 const SCHLIEREN_THICKNESS_MUL = 0.86;
 
 const SCHLIEREN = [
@@ -299,13 +299,13 @@ function drawSchliereBodyLocal(item, alpha, hasAttachedFleck) {
   ctx.lineJoin = 'round';
 
   const thick = item.thick * SCHLIEREN_THICKNESS_MUL;
-  drawCloudLayer(item, 14, `rgba(68, 70, 84, ${0.24 * alpha})`, Math.max(4.4, thick * 3.9), 0);
-  drawCloudLayer(item, 10, `rgba(78, 80, 94, ${0.17 * alpha})`, Math.max(6.4, thick * 5.3), 1.8);
-  drawCloudLayer(item, 6.5, `rgba(110, 112, 126, ${0.17 * alpha})`, Math.max(2.1, thick * 1.8), 0);
-  drawCloudLayer(item, 4.5, `rgba(140, 142, 154, ${0.09 * alpha})`, Math.max(1.1, thick * 0.8), -1.2);
+  drawCloudLayer(item, 14, `rgba(52, 54, 68, ${0.28 * alpha})`, Math.max(4.4, thick * 3.9), 0);
+  drawCloudLayer(item, 10, `rgba(62, 64, 78, ${0.21 * alpha})`, Math.max(6.4, thick * 5.3), 1.8);
+  drawCloudLayer(item, 6.5, `rgba(92, 94, 110, ${0.20 * alpha})`, Math.max(2.1, thick * 1.8), 0);
+  drawCloudLayer(item, 4.5, `rgba(124, 126, 140, ${0.11 * alpha})`, Math.max(1.1, thick * 0.8), -1.2);
 
   ctx.filter = 'blur(16px)';
-  ctx.strokeStyle = `rgba(64, 66, 80, ${0.075 * alpha})`;
+  ctx.strokeStyle = `rgba(50, 52, 66, ${0.095 * alpha})`;
   strokeSchliereLayer(item, Math.max(7.8, thick * 6.8), 3.4);
 
   if (hasAttachedFleck) {
@@ -409,13 +409,13 @@ function drawAttachedFleck(item, alpha) {
   ctx.save();
   ctx.filter = 'blur(8px)';
   const fleckAlpha = item.fleckAlpha == null ? 1 : item.fleckAlpha;
-  ctx.fillStyle = `rgba(86, 88, 102, ${0.16 * alpha * fleckAlpha})`;
+  ctx.fillStyle = `rgba(62, 64, 78, ${0.21 * alpha * fleckAlpha})`;
   ctx.beginPath();
   ctx.ellipse(fleckX, fleckY, dia * 2.2, dia * 1.25, 0.18, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.filter = 'blur(3.2px)';
-  ctx.fillStyle = `rgba(136, 138, 150, ${0.13 * alpha * fleckAlpha})`;
+  ctx.fillStyle = `rgba(112, 114, 128, ${0.16 * alpha * fleckAlpha})`;
   ctx.beginPath();
   ctx.ellipse(fleckX, fleckY, dia * 1.55, dia * 0.82, 0.18, 0, Math.PI * 2);
   ctx.fill();
@@ -475,13 +475,13 @@ function drawSchlierenFleck(item, index) {
   ctx.translate(x, y);
   ctx.rotate(item.angle + globalOrbitAngle);
   ctx.filter = 'blur(18px)';
-  ctx.fillStyle = `rgba(76, 78, 92, ${item.alpha * SCHLIEREN_ALPHA_MUL})`;
+  ctx.fillStyle = `rgba(56, 58, 72, ${item.alpha * SCHLIEREN_ALPHA_MUL})`;
   ctx.beginPath();
   ctx.ellipse(0, 0, s * 1.95, s * 1.05, 0, 0, Math.PI * 2);
   ctx.fill();
 
   ctx.filter = 'blur(10px)';
-  ctx.fillStyle = `rgba(122, 124, 138, ${item.alpha * 0.42 * SCHLIEREN_ALPHA_MUL})`;
+  ctx.fillStyle = `rgba(104, 106, 120, ${item.alpha * 0.50 * SCHLIEREN_ALPHA_MUL})`;
   ctx.beginPath();
   ctx.ellipse(s * 0.08, -s * 0.04, s * 1.12, s * 0.62, 0, 0, Math.PI * 2);
   ctx.fill();
