@@ -68,6 +68,27 @@ const SCHLIEREN = [
   { x: 0.94, y: 0.12, len: 88, thick: 0.21, curve: 12, angle: -132, alpha: 0.18, seed: 80.8, shape: 'kink' }
 ];
 
+const HELLE_SCHLIEREN = [
+  { x: 0.08, y: 0.18, len: 132, thick: 0.18, curve: 16, angle: -28, alpha: 0.34, seed: 201.1, shape: 'arc', light: true },
+  { x: 0.32, y: 0.14, len: 92, thick: 0.16, curve: -11, angle: 62, alpha: 0.28, seed: 202.2, shape: 'hook', light: true },
+  { x: 0.58, y: 0.20, len: 168, thick: 0.19, curve: 24, angle: -76, alpha: 0.32, seed: 203.3, shape: 'kink', light: true },
+  { x: 0.86, y: 0.18, len: 76, thick: 0.14, curve: 8, angle: 34, alpha: 0.25, seed: 204.4, shape: 'arc', light: true },
+  { x: 0.18, y: 0.42, len: 210, thick: 0.20, curve: -28, angle: 16, alpha: 0.30, seed: 205.5, shape: 'fold', light: true },
+  { x: 0.44, y: 0.46, len: 118, thick: 0.17, curve: 13, angle: -118, alpha: 0.27, seed: 206.6, shape: 'zig', light: true },
+  { x: 0.69, y: 0.44, len: 184, thick: 0.18, curve: -18, angle: 78, alpha: 0.31, seed: 207.7, shape: 'loop', light: true },
+  { x: 0.93, y: 0.52, len: 104, thick: 0.15, curve: 10, angle: -44, alpha: 0.26, seed: 208.8, shape: 'hook', light: true },
+  { x: 0.10, y: 0.70, len: 84, thick: 0.15, curve: -9, angle: 105, alpha: 0.24, seed: 209.9, shape: 'arc', light: true },
+  { x: 0.36, y: 0.72, len: 232, thick: 0.21, curve: 31, angle: -18, alpha: 0.33, seed: 211.0, shape: 'kink', light: true },
+  { x: 0.62, y: 0.74, len: 138, thick: 0.17, curve: -15, angle: 138, alpha: 0.27, seed: 212.1, shape: 'fold', light: true },
+  { x: 0.84, y: 0.82, len: 118, thick: 0.16, curve: 12, angle: 42, alpha: 0.29, seed: 213.2, shape: 'arc', light: true },
+  { x: -0.18, y: 0.28, len: 142, thick: 0.17, curve: 18, angle: -12, alpha: 0.24, seed: 214.3, shape: 'hook', light: true, edge: true },
+  { x: 1.16, y: 0.34, len: 126, thick: 0.16, curve: -14, angle: 70, alpha: 0.23, seed: 215.4, shape: 'zig', light: true, edge: true },
+  { x: 0.24, y: -0.16, len: 110, thick: 0.15, curve: 11, angle: 112, alpha: 0.22, seed: 216.5, shape: 'arc', light: true, edge: true },
+  { x: 0.72, y: 1.14, len: 156, thick: 0.18, curve: -20, angle: -54, alpha: 0.25, seed: 217.6, shape: 'loop', light: true, edge: true }
+];
+
+const ALLE_SCHLIEREN = SCHLIEREN.concat(HELLE_SCHLIEREN);
+
 const SCHLIEREN_FLECKEN = [
   { x: 0.23, y: 0.24, size: 17, alpha: 0.10, angle: -0.35, seed: 101.1 },
   { x: 0.73, y: 0.28, size: 14, alpha: 0.08, angle: 0.18, seed: 102.2 },
@@ -78,7 +99,7 @@ const SCHLIEREN_FLECKEN = [
 
 const ELEMENTE = [];
 
-SCHLIEREN.forEach((item, index) => {
+ALLE_SCHLIEREN.forEach((item, index) => {
   item.number = index + 1;
   item.px = 0;
   item.py = 0;
@@ -97,7 +118,9 @@ SCHLIEREN.forEach((item, index) => {
   item.spriteBounds = null;
   item.spriteCurlKey = null;
   item.nextSpriteFrame = 0;
-  item.visibility = (0.30 + stable01(item.seed) * 0.70) * 0.50;
+  item.visibility = item.light
+    ? (0.20 + stable01(item.seed) * 0.34)
+    : (0.30 + stable01(item.seed) * 0.70) * 0.50;
   const thinStart = 0.18 + stable01(item.seed + 71.3) * 0.58;
   const thinLen = 0.10 + stable01(item.seed + 83.9) * 0.13;
   item.thinning = {
@@ -255,7 +278,7 @@ function schliereVisibleAt(item, x, y) {
 function drawSchliere(item, index) {
   const x = item.x * window.innerWidth;
   const y = item.y * window.innerHeight;
-  const hasAttachedFleck = index % 3 !== 2;
+  const hasAttachedFleck = !item.light && index % 3 !== 2;
   const alpha = item.alpha * item.visibility * SCHLIEREN_ALPHA_MUL;
   const offsets = item.edge
     ? [[0, 0], [-window.innerWidth, 0], [window.innerWidth, 0], [0, -window.innerHeight], [0, window.innerHeight]]
@@ -299,6 +322,15 @@ function drawSchliereBodyLocal(item, alpha, hasAttachedFleck) {
   ctx.lineJoin = 'round';
 
   const thick = item.thick * SCHLIEREN_THICKNESS_MUL;
+  if (item.light) {
+    drawCloudLayer(item, 18, `rgba(250, 252, 255, ${0.32 * alpha})`, Math.max(5.2, thick * 5.4), 0);
+    drawCloudLayer(item, 11, `rgba(232, 236, 242, ${0.18 * alpha})`, Math.max(3.2, thick * 3.2), 1.4);
+    drawCloudLayer(item, 6, `rgba(214, 219, 228, ${0.10 * alpha})`, Math.max(1.3, thick * 1.2), -1.0);
+    ctx.filter = 'none';
+    ctx.restore();
+    return;
+  }
+
   drawCloudLayer(item, 14, `rgba(52, 54, 68, ${0.28 * alpha})`, Math.max(4.4, thick * 3.9), 0);
   drawCloudLayer(item, 10, `rgba(62, 64, 78, ${0.21 * alpha})`, Math.max(6.4, thick * 5.3), 1.8);
   drawCloudLayer(item, 6.5, `rgba(92, 94, 110, ${0.20 * alpha})`, Math.max(2.1, thick * 1.8), 0);
@@ -624,7 +656,7 @@ function draw() {
   ctx = mainCtx;
   ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
   ELEMENTE.forEach(drawElement);
-  SCHLIEREN.forEach(drawSchliere);
+  ALLE_SCHLIEREN.forEach(drawSchliere);
   SCHLIEREN_FLECKEN.forEach(drawSchlierenFleck);
 }
 
@@ -675,7 +707,7 @@ function updateMotion() {
     motionY: motion.y
   };
 
-  SCHLIEREN.forEach((item) => {
+  ALLE_SCHLIEREN.forEach((item) => {
     item.px += frameMoveX * item.motionMul;
     item.py += frameMoveY * item.motionMul;
     updateFreeDrift(item, motion.x, motion.y);
